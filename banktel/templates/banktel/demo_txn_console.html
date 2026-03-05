@@ -1,0 +1,340 @@
+{% extends "banktel/demo_base.html" %}
+
+{% block chips_extra %}
+  <span class="chip">模板 <strong>{{ selected_query }}</strong></span>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  .console-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 12px;
+  }
+
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .timeline li {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: var(--soft);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .timeline li.done {
+    border-color: rgba(10,139,114,0.35);
+    background: rgba(10,139,114,0.10);
+  }
+
+  .timeline li.current {
+    border-color: rgba(15,75,142,0.36);
+    background: rgba(15,75,142,0.12);
+    font-weight: 700;
+  }
+
+  .timeline li.rejected {
+    border-color: rgba(186,60,48,0.35);
+    background: rgba(186,60,48,0.10);
+    color: #8f2f26;
+    font-weight: 700;
+  }
+
+  .ops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ops .btn { min-width: 96px; }
+
+  .meta-list {
+    margin: 0;
+    display: grid;
+    gap: 7px;
+  }
+
+  .meta-list .row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 8px;
+    background: var(--soft);
+    font-size: 13px;
+  }
+
+  .meta-list .k { color: var(--sub); font-weight: 700; }
+  .meta-list .v { color: var(--text); overflow-wrap: anywhere; }
+
+  @media (max-width: 1080px) {
+    .console-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <section class="panel card">
+    <h3>交易查询参数</h3>
+    <form method="get">
+      <div class="fields">
+        <div class="field">
+          <label>查询模板</label>
+          <select name="query">
+            {% for q in available_queries %}
+              <option value="{{ q }}" {% if q == selected_query %}selected{% endif %}>{{ q }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% for item in form_items %}
+          <div class="field">
+            <label>{{ item.label }}</label>
+            <input name="{{ item.name }}" value="{{ item.value|default_if_none:'' }}">
+          </div>
+        {% endfor %}
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn" type="submit">刷新查询</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="console-grid">
+    <section class="panel card">
+      <h3>交易待办列表</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>交易号</th>
+              <th>客户号</th>
+              <th>金额</th>
+              <th>阶段</th>
+              <th>交易时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for txn in worklist %}
+              <tr>
+                <td>{{ txn.id }}</td>
+                <td>{{ txn.txn_no }}</td>
+                <td>{{ txn.customer.customer_no }}</td>
+                <td>{{ txn.amount }}</td>
+                <td><span class="status-badge">{{ txn.get_core_phase_display }}</span></td>
+                <td>{{ txn.txn_at }}</td>
+                <td>
+                  <a href="/demo/txns?{% if base_query %}{{ base_query }}&{% endif %}txn_id={{ txn.id }}">查看</a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7">暂无交易数据</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel card">
+      <h3>当前交易详情</h3>
+      {% if selected_txn %}
+        <dl class="meta-list">
+          <div class="row"><div class="k">交易ID</div><div class="v">{{ selected_txn.id }}</div></div>
+          <div class="row"><div class="k">交易号</div><div class="v">{{ selected_txn.txn_no }}</div></div>
+          <div class="row"><div class="k">客户号</div><div class="v">{{ selected_txn.customer.customer_no }}</div></div>
+          <div class="row"><div class="k">账户号</div><div class="v">{{ selected_txn.account.account_no }}</div></div>
+          <div class="row"><div class="k">金额</div><div class="v">{{ selected_txn.amount }}</div></div>
+          <div class="row"><div class="k">核心阶段</div><div class="v"><span class="status-badge">{{ selected_txn.get_core_phase_display }}</span></div></div>
+          <div class="row"><div class="k">经办人</div><div class="v">{{ selected_txn.maker_user|default:"-" }}</div></div>
+          <div class="row"><div class="k">复核人</div><div class="v">{{ selected_txn.checker_user|default:"-" }}</div></div>
+        </dl>
+        <div style="margin-top:10px;" class="hint">
+          角色：{% if role_flags.is_maker %}<span class="status-badge ok">经办</span>{% endif %}
+          {% if role_flags.is_checker %}<span class="status-badge warn">复核</span>{% endif %}
+          {% if not role_flags.is_maker and not role_flags.is_checker %}<span class="status-badge">只读</span>{% endif %}
+        </div>
+      {% else %}
+        <div class="hint">暂无可展示交易。</div>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="console-grid">
+    <section class="panel card">
+      <h3>核心交易操作区</h3>
+      <div id="action-result" class="hint" style="margin-bottom:8px;">请按经办/复核权限执行下一步动作。</div>
+      {% if selected_txn %}
+        <div class="ops">
+          {% for item in action_buttons %}
+            <button
+              type="button"
+              class="btn {% if item.action == 'reject' %}danger{% elif item.action == 'approve' %}ok{% elif item.action == 'clear' %}warn{% endif %}"
+              data-url="/demo/txns/{{ selected_txn.id }}/{{ item.action }}"
+            >
+              {{ item.label }}
+            </button>
+          {% empty %}
+            <span class="status-badge">当前状态无可执行动作</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <span class="status-badge">暂无交易可操作</span>
+      {% endif %}
+    </section>
+
+    <section class="panel card">
+      <h3>状态时间线</h3>
+      {% if selected_txn %}
+        <ul class="timeline">
+          {% for step in txn_timeline %}
+            <li class="{% if step.done %}done{% endif %} {% if step.current %}current{% endif %} {% if step.is_rejected %}rejected{% endif %}">
+              <span>{{ step.label }}</span>
+              {% if step.current %}
+                <span class="status-badge">当前</span>
+              {% elif step.done %}
+                <span class="status-badge ok">完成</span>
+              {% else %}
+                <span class="status-badge">待执行</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="hint">暂无时间线。</div>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="panel card">
+    <h3>关联风险案件</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>案件号</th>
+            <th>风险状态</th>
+            <th>风险金额</th>
+            <th>关联交易号</th>
+            <th>最后审核人</th>
+            <th>最后审核时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rc in risk_cases %}
+            <tr>
+              <td>{{ rc.case_no }}</td>
+              <td><span class="status-badge">{{ rc.get_risk_phase_display }}</span></td>
+              <td>{{ rc.risk_amount }}</td>
+              <td>{{ rc.linked_txn_no|default:"-" }}</td>
+              <td>{{ rc.reviewed_by|default:"-" }}</td>
+              <td>{{ rc.reviewed_at|default:"-" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6">暂无关联风险案件</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel card">
+    <h3>交易查询结果（{{ rows_count }} 行）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {% for c in columns %}
+              <th>{{ c }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              {% for cell in row %}
+                <td>{{ cell }}</td>
+              {% endfor %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="{{ columns|length|default:1 }}">暂无数据</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <details class="audit" style="margin-top:10px;">
+      <summary>技术审计（SQL/参数/异常）</summary>
+      {% if error %}
+        <div class="alert" style="margin:0 8px 8px;">{{ error }}</div>
+      {% else %}
+        <div class="okbox" style="margin:0 8px 8px;">查询执行成功</div>
+      {% endif %}
+      <div class="sql-box">
+        <h4>原始 SQL</h4>
+        <pre>{{ raw_sql }}</pre>
+      </div>
+      {% if pre_sql %}
+        <div class="sql-box">
+          <h4>预执行 SQL</h4>
+          <pre>{{ pre_sql }}</pre>
+        </div>
+      {% endif %}
+      <div class="sql-box">
+        <h4>最终执行 SQL</h4>
+        <pre>{{ final_sql }}</pre>
+      </div>
+    </details>
+  </section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+  }
+
+  async function postAction(url) {
+    const resultNode = document.getElementById("action-result");
+    resultNode.textContent = "正在执行...";
+    try {
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        resultNode.textContent = `${data.message}，交易阶段=${data.txn_phase}，风险阶段=${data.risk_phase}`;
+        setTimeout(() => window.location.reload(), 600);
+      } else {
+        resultNode.textContent = data.error || "执行失败";
+      }
+    } catch (err) {
+      resultNode.textContent = `执行失败: ${err}`;
+    }
+  }
+
+  document.querySelectorAll("button[data-url]").forEach((btn) => {
+    btn.addEventListener("click", () => postAction(btn.dataset.url));
+  });
+</script>
+{% endblock %}

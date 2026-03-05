@@ -1,0 +1,81 @@
+{% extends "banktel/demo_base.html" %}
+
+{% block chips_extra %}
+  <span class="chip">模板 <strong>{{ selected_query }}</strong></span>
+{% endblock %}
+
+{% block content %}
+  <section class="panel card">
+    <h3>风险案件筛选</h3>
+    <form method="get">
+      <div class="fields">
+        <div class="field">
+          <label>查询模板</label>
+          <select name="query">
+            {% for q in available_queries %}
+              <option value="{{ q }}" {% if q == selected_query %}selected{% endif %}>{{ q }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% for item in form_items %}
+          <div class="field">
+            <label>{{ item.label }}</label>
+            <input name="{{ item.name }}" value="{{ item.value|default_if_none:'' }}">
+          </div>
+        {% endfor %}
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn" type="submit">执行查询</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel card">
+    <h3>风险案件结果（{{ rows_count }} 行）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {% for c in columns %}
+              <th>{{ c }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              {% for cell in row %}
+                <td>{{ cell }}</td>
+              {% endfor %}
+            </tr>
+          {% empty %}
+            <tr><td colspan="{{ columns|length|default:1 }}">暂无数据</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <details class="audit" style="margin-top:10px;">
+      <summary>技术审计（默认折叠）</summary>
+      {% if error %}
+        <div class="alert" style="margin:0 8px 8px;">{{ error }}</div>
+      {% else %}
+        <div class="okbox" style="margin:0 8px 8px;">查询执行成功</div>
+      {% endif %}
+      <div class="sql-box">
+        <h4>原始 SQL</h4>
+        <pre>{{ raw_sql }}</pre>
+      </div>
+      {% if pre_sql %}
+        <div class="sql-box">
+          <h4>预执行 SQL</h4>
+          <pre>{{ pre_sql }}</pre>
+        </div>
+      {% endif %}
+      <div class="sql-box">
+        <h4>最终执行 SQL</h4>
+        <pre>{{ final_sql }}</pre>
+      </div>
+    </details>
+  </section>
+{% endblock %}

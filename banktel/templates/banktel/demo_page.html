@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page_title }} | 银行运营中台</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=ZCOOL+XiaoWei&display=swap");
+
+    :root {
+      --bg: #f4f8fb;
+      --bg-elevated: #ffffff;
+      --bg-soft: #eef4fa;
+      --ink: #10243d;
+      --ink-soft: #4a607b;
+      --line: #d7e2ef;
+      --brand: #0f4b8e;
+      --brand-deep: #0b2f58;
+      --accent: #0b9d83;
+      --warn: #c43f32;
+      --shadow: 0 12px 40px rgba(16, 36, 61, 0.08);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Manrope", "Noto Sans SC", sans-serif;
+      background:
+        radial-gradient(circle at 8% 10%, rgba(15, 75, 142, 0.10), transparent 28%),
+        radial-gradient(circle at 92% 84%, rgba(11, 157, 131, 0.10), transparent 24%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .shell {
+      width: min(1320px, calc(100% - 32px));
+      margin: 16px auto 28px;
+      animation: fade-up 0.5s ease-out;
+    }
+
+    .topbar {
+      background: linear-gradient(115deg, #0f4b8e, #0b2f58);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      color: #fff;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .identity {
+      display: grid;
+      gap: 4px;
+    }
+
+    .brand-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .brand-mark {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #98d2ff, #7ff4df);
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.12);
+    }
+
+    .page-name {
+      margin: 0;
+      font-family: "ZCOOL XiaoWei", serif;
+      font-size: clamp(24px, 3vw, 33px);
+      font-weight: 400;
+      line-height: 1.1;
+    }
+
+    .meta-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #eaf3ff;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .chip strong { color: #ffffff; }
+
+    .layout {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--bg-elevated);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
+    }
+
+    .sidenav {
+      padding: 14px;
+      position: sticky;
+      top: 10px;
+      animation: fade-up 0.55s ease-out;
+    }
+
+    .sidenav h2 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      font-weight: 700;
+    }
+
+    .menu {
+      display: grid;
+      gap: 7px;
+    }
+
+    .menu a {
+      display: block;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      background: var(--bg-soft);
+      color: var(--ink);
+      border-radius: var(--radius-sm);
+      padding: 10px 11px;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .menu a:hover {
+      transform: translateY(-1px);
+      border-color: #b9cde5;
+      box-shadow: 0 8px 20px rgba(15, 75, 142, 0.1);
+    }
+
+    .menu a.active {
+      border-color: var(--brand);
+      background: linear-gradient(145deg, rgba(15, 75, 142, 0.12), rgba(11, 157, 131, 0.08));
+      color: #0c3768;
+    }
+
+    .menu small {
+      display: block;
+      margin-top: 2px;
+      font-weight: 500;
+      color: var(--ink-soft);
+    }
+
+    .main {
+      display: grid;
+      gap: 14px;
+      animation: fade-up 0.62s ease-out;
+    }
+
+    .card {
+      padding: 14px;
+    }
+
+    .card-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #17365b;
+      letter-spacing: 0.01em;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--ink);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 13px;
+      padding: 10px;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #83aed8;
+      box-shadow: 0 0 0 4px rgba(15, 75, 142, 0.12);
+    }
+
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      background: linear-gradient(120deg, var(--brand), var(--brand-deep));
+      box-shadow: 0 8px 20px rgba(11, 47, 88, 0.26);
+    }
+
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kvs {
+      margin: 0;
+      display: grid;
+      gap: 7px;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+    }
+
+    .kvs .item {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+    }
+
+    .kvs .item dt { color: var(--ink-soft); }
+    .kvs .item dd { margin: 0; color: var(--ink); font-weight: 600; overflow-wrap: anywhere; }
+
+    .sql-block {
+      border: 1px solid #c4d7ea;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #f7fbff;
+    }
+
+    .sql-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid #d6e4f1;
+      background: linear-gradient(90deg, rgba(15, 75, 142, 0.09), rgba(11, 157, 131, 0.08));
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #20466f;
+    }
+
+    pre {
+      margin: 0;
+      padding: 11px;
+      max-height: 240px;
+      overflow: auto;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #0f253f;
+    }
+
+    .error-box {
+      border: 1px solid rgba(196, 63, 50, 0.35);
+      background: rgba(196, 63, 50, 0.07);
+      border-radius: 10px;
+      padding: 10px;
+      color: #8f2f26;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: pre-wrap;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      min-width: 700px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #e0e8f1;
+      padding: 9px 10px;
+      text-align: left;
+      font-size: 13px;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(180deg, #eaf2fa, #dfeaf6);
+      color: #17365a;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    tr:nth-child(even) td { background: #f9fcff; }
+
+    .section {
+      animation: fade-up 0.72s ease-out both;
+    }
+
+    .section:nth-of-type(2) { animation-delay: 0.05s; }
+    .section:nth-of-type(3) { animation-delay: 0.1s; }
+    .section:nth-of-type(4) { animation-delay: 0.15s; }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1200px) {
+      .toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidenav { position: static; }
+      .audit-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .shell { width: calc(100% - 20px); margin: 10px auto 18px; }
+      .topbar { padding: 14px; }
+      .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kvs .item { grid-template-columns: 1fr; gap: 4px; }
+      .page-name { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="identity">
+        <div class="brand-line">
+          <span class="brand-mark"></span>
+          <span>BankTel 银行运营中台</span>
+        </div>
+        <h1 class="page-name">{{ page_title }}</h1>
+      </div>
+      <div class="meta-chips">
+        <span class="chip">运行环境 <strong>{{ db_target }}</strong></span>
+        <span class="chip">SQL 文件 <strong>{{ sql_filename }}</strong></span>
+        <span class="chip">查询模板 <strong>{{ selected_query }}</strong></span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel sidenav">
+        <h2>业务导航</h2>
+        <nav class="menu">
+          <a href="/demo/customers" class="{% if '/customers' in request.path %}active{% endif %}">
+            客户主数据
+            <small>客户信息与账户映射查询</small>
+          </a>
+          <a href="/demo/txns" class="{% if '/txns' in request.path %}active{% endif %}">
+            交易流水中心
+            <small>交易明细与时间轴检索</small>
+          </a>
+          <a href="/demo/risk" class="{% if '/risk' in request.path %}active{% endif %}">
+            风险监测中心
+            <small>案件核查与规则追踪</small>
+          </a>
+          <a href="/admin/">
+            管理后台
+            <small>模型与数据治理控制台</small>
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <section class="panel card section">
+          <h2 class="card-title">查询配置</h2>
+          <form method="get">
+            <div class="toolbar">
+              <div class="field">
+                <label>查询模板</label>
+                <select name="query">
+                  {% for q in available_queries %}
+                    <option value="{{ q }}" {% if q == selected_query %}selected{% endif %}>{{ q }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% for item in form_items %}
+                <div class="field">
+                  <label>{{ item.label }}</label>
+                  <input name="{{ item.name }}" value="{{ item.value|default_if_none:'' }}">
+                </div>
+              {% endfor %}
+            </div>
+            <div class="actions">
+              <button class="btn" type="submit">执行查询</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel card section">
+          <h2 class="card-title">执行审计</h2>
+          <div class="audit-grid">
+            <div>
+              <h3 class="card-title">标准化参数</h3>
+              <dl class="kvs">
+                {% for item in form_items %}
+                  <div class="item">
+                    <dt>{{ item.label }}</dt>
+                    <dd>{{ item.value|default_if_none:"空值" }}</dd>
+                  </div>
+                {% endfor %}
+              </dl>
+            </div>
+            <div>
+              {% if error %}
+                <h3 class="card-title">执行状态</h3>
+                <div class="error-box">{{ error }}</div>
+              {% else %}
+                <h3 class="card-title">执行状态</h3>
+                <div class="error-box" style="border-color: rgba(11, 157, 131, 0.35); background: rgba(11, 157, 131, 0.08); color: #0a6b59;">
+                  查询执行成功。
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+        <section class="panel card section">
+          <h2 class="card-title">SQL 追踪</h2>
+          <div class="sql-block">
+            <div class="sql-head">原始 SQL</div>
+            <pre>{{ raw_sql }}</pre>
+          </div>
+          {% if pre_sql %}
+            <div class="sql-block" style="margin-top:10px;">
+              <div class="sql-head">预执行 SQL</div>
+              <pre>{{ pre_sql }}</pre>
+            </div>
+          {% endif %}
+          <div class="sql-block" style="margin-top:10px;">
+            <div class="sql-head">最终执行 SQL</div>
+            <pre>{{ final_sql }}</pre>
+          </div>
+        </section>
+
+        <section class="panel card section">
+          <h2 class="card-title">查询结果（{{ rows|length }} 行）</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  {% for c in columns %}
+                    <th>{{ c }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in rows %}
+                  <tr>
+                    {% for cell in row %}
+                      <td>{{ cell }}</td>
+                    {% endfor %}
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="{{ columns|length|default:1 }}">暂无数据</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
