@@ -9,23 +9,80 @@
   .console-grid {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
-    gap: 12px;
+    gap: 10px;
   }
+
+  .desk-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .desk-head .stamp {
+    font-size: 11px;
+    color: var(--sub);
+    border: 1px dashed #c8d3e3;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #fbfcff;
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .ops {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 9px;
+    background: linear-gradient(180deg, #f7f9fc, #eef3fa);
+    border: 1px solid #d7dfea;
+    border-radius: 5px;
+  }
+
+  .ops .btn { min-width: 108px; }
+
+  .meta-list {
+    margin: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .meta-list .row {
+    display: grid;
+    grid-template-columns: 108px 1fr;
+    gap: 9px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 7px 8px;
+    background: var(--soft);
+    font-size: 12px;
+  }
+
+  .meta-list .k {
+    color: var(--sub);
+    font-weight: 700;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+  }
+
+  .meta-list .v { color: var(--text); overflow-wrap: anywhere; }
 
   .timeline {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 8px;
+    gap: 6px;
   }
 
   .timeline li {
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 10px;
-    background: var(--soft);
-    font-size: 13px;
+    border: 1px solid #d8dfe8;
+    border-left: 3px solid #b5c2d5;
+    border-radius: 4px;
+    padding: 7px 9px;
+    background: #f9fbfe;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -33,50 +90,57 @@
   }
 
   .timeline li.done {
-    border-color: rgba(10,139,114,0.35);
-    background: rgba(10,139,114,0.10);
+    border-left-color: var(--ok);
+    border-color: rgba(29,127,87,0.32);
+    background: rgba(29,127,87,0.08);
   }
 
   .timeline li.current {
-    border-color: rgba(15,75,142,0.36);
-    background: rgba(15,75,142,0.12);
+    border-left-color: var(--accent);
+    border-color: rgba(199,70,52,0.32);
+    background: rgba(199,70,52,0.1);
     font-weight: 700;
   }
 
   .timeline li.rejected {
-    border-color: rgba(186,60,48,0.35);
-    background: rgba(186,60,48,0.10);
+    border-left-color: var(--danger);
+    border-color: rgba(179,56,43,0.36);
+    background: rgba(179,56,43,0.1);
     color: #8f2f26;
     font-weight: 700;
   }
 
-  .ops {
+  .work-link {
+    color: #2f4f74;
+    text-decoration: none;
+    border-bottom: 1px dotted #5a7598;
+  }
+
+  .work-link:hover {
+    color: #1d3859;
+    border-bottom-color: #1d3859;
+  }
+
+  #action-result {
+    border: 1px solid #d7dfea;
+    border-radius: 4px;
+    background: #f8fafe;
+    padding: 8px;
+  }
+
+  .txn-headline {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
+    margin-bottom: 8px;
   }
 
-  .ops .btn { min-width: 96px; }
-
-  .meta-list {
-    margin: 0;
-    display: grid;
-    gap: 7px;
+  .txn-headline .stamp {
+    font-size: 11px;
+    color: var(--sub);
+    font-family: "IBM Plex Mono", monospace;
   }
-
-  .meta-list .row {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    gap: 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 7px 8px;
-    background: var(--soft);
-    font-size: 13px;
-  }
-
-  .meta-list .k { color: var(--sub); font-weight: 700; }
-  .meta-list .v { color: var(--text); overflow-wrap: anywhere; }
 
   @media (max-width: 1080px) {
     .console-grid { grid-template-columns: 1fr; }
@@ -86,7 +150,10 @@
 
 {% block content %}
   <section class="panel card">
-    <h3>交易查询参数</h3>
+    <div class="desk-head">
+      <h3 style="margin:0;">交易查询参数</h3>
+      <span class="stamp">核心交易控制台</span>
+    </div>
     <form method="get">
       <div class="fields">
         <div class="field">
@@ -112,7 +179,10 @@
 
   <section class="console-grid">
     <section class="panel card">
-      <h3>交易待办列表</h3>
+      <div class="txn-headline">
+        <h3 style="margin:0;">交易待办列表</h3>
+        <span class="stamp">待办队列 / TOP 60</span>
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -136,7 +206,7 @@
                 <td><span class="status-badge">{{ txn.get_core_phase_display }}</span></td>
                 <td>{{ txn.txn_at }}</td>
                 <td>
-                  <a href="/demo/txns?{% if base_query %}{{ base_query }}&{% endif %}txn_id={{ txn.id }}">查看</a>
+                  <a class="work-link" href="/demo/txns?{% if base_query %}{{ base_query }}&{% endif %}txn_id={{ txn.id }}">查看</a>
                 </td>
               </tr>
             {% empty %}
